@@ -24,9 +24,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return
   }
 
-  const isLegacy = segments[0] === 'legacy'
+  // segments[0] is the namespace: 'v1' or 'legacy'. It selects the upstream host and is
+  // NOT part of the upstream path — /api/proxy/v1/auth/login -> .../api/v1/auth/login
+  const namespace = segments[0]
+  const isLegacy = namespace === 'legacy'
   const base = isLegacy ? LEGACY : V1
-  const tail = isLegacy ? segments.slice(1) : segments
+  const tail = segments.slice(1)
+  if (tail.length === 0) {
+    res.status(400).json({ isSuccess: false, error: { message: `Missing path after /${namespace}` } })
+    return
+  }
   const qs = req.url && req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : ''
 
   const headers: Record<string, string> = { Accept: 'application/json' }

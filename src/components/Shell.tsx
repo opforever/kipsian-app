@@ -14,7 +14,7 @@ import {
   Wallet,
   X,
 } from 'lucide-react'
-import { fetchNotifications, logout } from '../lib/api'
+import { fetchNotifications, logout, setSession } from '../lib/api'
 import { useAsync } from '../lib/hooks'
 import { useSession } from '../lib/useSession'
 import { Avatar } from './ui'
@@ -87,6 +87,27 @@ export default function Shell() {
         </nav>
 
         <div className="mt-4 rounded-2xl border border-line bg-canvas/70 p-3">
+          {session && session.users.length > 1 && (
+            <div className="mb-2.5">
+              <label className="mb-1 block text-[10.5px] font-semibold tracking-wide text-ink-400 uppercase">
+                Viewing
+              </label>
+              <select
+                value={user?.aReg}
+                onChange={(e) => {
+                  const next = session.users.find((u) => u.aReg === e.target.value)
+                  if (next) setSession({ ...session, user: next })
+                }}
+                className="w-full rounded-lg border border-line bg-white px-2 py-1.5 text-[12px] font-medium text-ink-800"
+              >
+                {session.users.map((u) => (
+                  <option key={u.aReg} value={u.aReg}>
+                    {u.aName} · {u.secId}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <div className="flex items-center gap-2.5">
             <Avatar name={user?.aName ?? 'KIPS'} src={user?.aPic} size={38} />
             <div className="min-w-0">

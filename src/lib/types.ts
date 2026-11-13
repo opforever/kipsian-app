@@ -45,7 +45,10 @@ export interface Student {
 }
 
 export interface SessionUser {
+  /** the record every screen renders: the student, or the selected child for a parent */
   user: Student
+  /** parent accounts only: the guardian record (mostly empty — children live in `users`) */
+  guardian?: Student
   users: Student[]
   userType: UserType
   token: string

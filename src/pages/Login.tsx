@@ -18,6 +18,13 @@ export default function Login() {
   const navigate = useNavigate()
   const [userType, setUserType] = useState<UserType>('student')
   const [username, setUsername] = useState('')
+
+  // 13 bare digits in parent mode are a CNIC — the API only matches the dashed form
+  const formatId = (value: string, type: UserType) => {
+    const digits = value.replace(/\D/g, '')
+    if (type === 'parent' && digits.length === 13) return `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12)}`
+    return value
+  }
   const [password, setPassword] = useState('')
   const [show, setShow] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -140,15 +147,16 @@ export default function Login() {
           <form onSubmit={submit} className="mt-6 space-y-5">
             <div>
               <label htmlFor="reg" className="label">
-                Registration number
+                {userType === 'student' ? 'Registration number' : 'Parent CNIC'}
               </label>
               <input
                 id="reg"
                 className="input tnum"
-                placeholder="e.g. 26-4-9-1-1574857"
+                placeholder={userType === 'student' ? 'e.g. 26-4-9-1-1574857' : 'e.g. 11101-1486033-5'}
                 autoComplete="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                onBlur={() => setUsername((v) => formatId(v, userType))}
                 required
               />
             </div>

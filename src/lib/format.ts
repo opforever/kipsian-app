@@ -87,6 +87,8 @@ const FRIENDLY: [RegExp, string][] = [
   [/invalid username or password/i, 'That password is not right. Please try again.'],
   [/jwt malformed|invalid token|unauthor/i, 'Your session expired. Please sign in again.'],
   [/econnrefused|failed to fetch|networkerror/i, 'Cannot reach KIPS right now. Check your connection.'],
+  [/the page could not be found|not_found/i, 'The API proxy is not available on this deployment — the /api function did not ship.'],
+  [/cannot (get|post) \/api\//i, 'The API proxy reached KIPS but the upstream path is wrong.'],
 ]
 
 export function friendlyError(message: string) {

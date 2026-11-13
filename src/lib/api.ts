@@ -150,8 +150,11 @@ export async function login(userType: UserType, username: string, password: stri
     )
   }
   const data = payload.data as LoginPayload
+  // Parent accounts return an empty `user` (the guardian) — the children are in `users`.
+  const primary = (data.users ?? []).find((u) => u && (u.aReg || u.aNo)) ?? data.user
   const session: SessionUser = {
-    user: data.user,
+    user: primary,
+    guardian: userType === 'parent' ? data.user : undefined,
     users: data.users?.length ? data.users : [data.user],
     userType: data.userType ?? userType,
     token: data.tokenData.token,
