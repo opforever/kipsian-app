@@ -62,9 +62,30 @@ mock; final verification was re-run against the live API once it recovered.
 | `/attendance` | `/attendance/get-attendance`, `/attendance/get-attendance-history` |
 | `/fees` | `/fee/get-fee`, `/fee/get-fee-history`, `/challan/get-all-challans` + IPG checkout link |
 | `/timetable` | `/timetable/get-timetable` (Mon–Sat grid from `sosLectureDays`) |
-| `/results` | `/test/get-test` (+ subject list from the legacy `api_student_details.php`) |
+| `/calendar` | legacy `api_academic_calendar.php` — weekly plan per subject |
+| `/results` | `/test/get-test` + campus mark sheet (`rpt-roster-result-card-all-ptm.php`) |
+| `/leave` | `GET /leave`, `POST /leave` (apply) |
 | `/notifications` | `/notifications`, `/notice-board/get-notifications` |
 | `/profile` | `/auth/get-logged-in-user`, `/notification-token/get-notification-status`, `POST /auth/change-password` |
+
+## How the missing endpoints were recovered
+
+The Android app builds these URLs at runtime, so the parameters were worked out by probing the
+live services (read-only) and cross-checking the APK's string table:
+
+* **Academic calendar** (`api_academic_calendar.php`, POST + `X-API-KEY`) needs
+  `programId`, `disciplineId`, `term`, `board`, `sosType`, `subjectId`, `date`, `session`.
+  Two non-obvious bits: `board` must be **`PB`** (Punjab Board — taken from
+  `api_student_details.php`, not `FBISE`), and `session` is the **ERP row id `26`**, not the
+  year `2026` (`2026` returns `session not found`). `sessionIdFor()` maps 2026 → 26.
+* **Mark sheet**: `rpt-roster-result-card-all-ptm.php?vs=<secNo>&vsession=<year>&oauth_token=…`
+  where `vs` is the numeric **section id** (`user.secNo`). The app sends `vs=0`, which is why its
+  WebView pulls the entire campus (33 MB); the section form is 2.5 MB.
+* **Leave**: `POST /leave` takes the raw ERP field names —
+  `aLeaveDateFrom`, `aLeaveDateTo`, `aLeaveDescription`, `aLeaveReason`, `aLeaveType`
+  (discovered by walking the validation chain, one 400 at a time). The campus currently answers
+  **403 "You are not allowed to create leaves."** for student accounts, so the form submits and
+  surfaces that message; flip it on server-side and it starts working.
 
 ## Session handling
 
@@ -75,15 +96,13 @@ Sign out clears the store — the API has no revoke endpoint.
 
 ## Not wired up
 
-* **Report card PDF/HTML view** — the Android app builds
-  `rpt-roster-result-card-all-ptm.php?vs=0&vsession=…&oauth_token=…` at runtime; the
-  per-student selector parameter is not recoverable from the APK strings, and `vs=0` returns
-  the whole section's sheet. Needs the exact parameter set from the app source.
-* **Academic calendar** — `api_academic_calendar.php` requires an ERP-internal `session`
-  value; every value we could derive from the student payload returns `session not found`.
 * **Push notifications** — web push would need a separate subscription store; the app's FCM
   token model does not apply to browsers.
-* **In-app review / suggestions rating** — endpoints exist (`/suggestions*`), screens not built.
+* **Suggestions / surveys / app rating** — endpoints exist (`/suggestions*`, `/feedback-*`),
+  screens not built (both return empty lists for this account today).
+* **Shop (books & uniforms)** — marketing links only (`kipspublications.com`, `uniformers.pk`).
+* **Report-card JSON endpoint** (`…-ptm-json.php`) — still rejects every parameter combination
+  we could derive; the HTML sheet covers the same need.
 
 ## Rate limits
 

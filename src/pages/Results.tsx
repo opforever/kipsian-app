@@ -1,9 +1,12 @@
-import { GraduationCap } from 'lucide-react'
-import { fetchResults, fetchSubjects } from '../lib/api'
+import { ArrowUpRight, FileText, GraduationCap } from 'lucide-react'
+import { fetchResults, fetchSubjects, markSheetUrl } from '../lib/api'
 import { useAsync } from '../lib/hooks'
+import { useSession } from '../lib/useSession'
 import { Card, EmptyState, ErrorNote, PageHeader, Pill, Progress, SectionTitle, Skeleton } from '../components/ui'
 
 export default function Results() {
+  const session = useSession()!
+  const sheet = markSheetUrl(session.user)
   const { data, loading, error, reload } = useAsync(async () => {
     const [results, subjects] = await Promise.allSettled([fetchResults(), fetchSubjects()])
     return {
@@ -113,6 +116,24 @@ export default function Results() {
                 Marks appear here as soon as your campus posts the graded paper. {data?.subjects ? `Enrolled subjects: ${data.subjects.subjects.map((s) => s.subjectTitle).join(', ')}.` : ''}
               </p>
             )}
+          </Card>
+
+          <Card className="mt-4 flex flex-wrap items-center justify-between gap-4 p-5">
+            <div className="flex items-start gap-3">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-700">
+                <FileText size={17} />
+              </span>
+              <div>
+                <p className="text-[13.5px] font-semibold text-ink-900">Campus mark sheet</p>
+                <p className="mt-0.5 max-w-[46ch] text-[12.5px] leading-relaxed text-ink-500">
+                  The PTM result sheet your campus publishes for section {session.user.secId} — opens as a printable
+                  document in a new tab.
+                </p>
+              </div>
+            </div>
+            <a href={sheet} target="_blank" rel="noreferrer" className="btn-ghost h-11 px-4 text-[13px]">
+              Open mark sheet <ArrowUpRight size={14} />
+            </a>
           </Card>
         </>
       )}

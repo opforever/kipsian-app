@@ -212,3 +212,81 @@ export const fetchSubjects = () =>
   )
 
 export const PAYMENT_URL = 'https://ipg.kips.edu.pk/bop/checkoutPage.php'
+
+/* ---------- academic calendar (legacy PHP, needs X-API-KEY) ---------- */
+
+export interface CalendarWeek {
+  subjectId: number
+  subject: string
+  week: number
+  weekStart: string
+  weekEnd: string
+  lectures: number
+  courseCoverage: string | null
+  testDue: string | null
+  coCurricular: Record<string, string | null>
+}
+
+/** The ERP keys sessions by row id, not by year: 2026 → 26. */
+export const sessionIdFor = (year: number) => Number(String(year).slice(-2))
+
+export async function fetchCalendar(subjectId: number, date: string) {
+  const user = current?.user
+  if (!user) throw new ApiError('Not signed in', 401)
+  return api<CalendarWeek>('/api_academic_calendar.php', {
+    method: 'POST',
+    base: 'legacy',
+    body: {
+      programId: user.aProgramId,
+      disciplineId: user.aDisciplineId,
+      term: 1,
+      board: 'PB',
+      sosType: 1,
+      subjectId,
+      date,
+      session: sessionIdFor(user.sessionId),
+    },
+  })
+}
+
+/* ---------- leave ---------- */
+
+export interface LeaveRecord {
+  aLeaveId: number
+  aLeaveANo: number
+  aLeaveAReg: string
+  aLeaveDateFrom: string
+  aLeaveDateTo: string
+  aLeaveDays: number
+  aLeaveDescription: string
+  aLeaveReason: string
+  aLeaveStatus: string
+  aLeaveType: string
+  aLeaveOn: string
+  aLeavePhase?: string
+}
+
+export interface LeaveDraft {
+  aLeaveDateFrom: string
+  aLeaveDateTo: string
+  aLeaveDescription: string
+  aLeaveReason: string
+  aLeaveType: string
+}
+
+export const fetchLeaves = () => api<LeaveRecord[]>('/leave')
+export const applyLeave = (draft: LeaveDraft) =>
+  api<LeaveRecord>('/leave', { method: 'POST', body: draft })
+
+/* ---------- mark sheet (section + campus PTM document) ---------- */
+
+const SHEET_TOKEN = 'eM6OYJPUSMhwSHDEJj9AZBFSebaYC6k8'
+
+export function markSheetUrl(user: { secNo: number; sessionId: number }, campus: 'cl' | 'ec' | 'fr' | 'sc' = 'cl') {
+  const q = new URLSearchParams({
+    vs: String(user.secNo),
+    vsession: String(user.sessionId),
+    oauth_token: SHEET_TOKEN,
+  })
+  return `https://377.kips.edu.pk/${campus}/rpt-roster-result-card-all-ptm.php?${q}`
+}

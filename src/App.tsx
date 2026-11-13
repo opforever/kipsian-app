@@ -7,6 +7,8 @@ import Dashboard from './pages/Dashboard'
 import Attendance from './pages/Attendance'
 import Fees from './pages/Fees'
 import Timetable from './pages/Timetable'
+import AcademicCalendar from './pages/AcademicCalendar'
+import Leave from './pages/Leave'
 import Results from './pages/Results'
 import Notifications from './pages/Notifications'
 import Profile from './pages/Profile'
@@ -43,6 +45,8 @@ export default function App() {
           <Route path="attendance" element={<Attendance />} />
           <Route path="fees" element={<Fees />} />
           <Route path="timetable" element={<Timetable />} />
+          <Route path="calendar" element={<AcademicCalendar />} />
+          <Route path="leave" element={<Leave />} />
           <Route path="results" element={<Results />} />
           <Route path="notifications" element={<Notifications />} />
           <Route path="profile" element={<Profile />} />
