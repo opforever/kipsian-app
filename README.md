@@ -62,7 +62,11 @@ cannot call the API directly. Everything therefore goes through a thin pipe:
 | `/api/proxy/v1/*` | `https://students.kips.edu.pk/api/v1/*` | `Authorization` passed through |
 | `/api/proxy/legacy/*` | `https://377.kips.edu.pk/apis/portal/students/*` | adds `X-API-KEY` server-side |
 
-* On Vercel: `api/proxy/[...path].ts` (Node runtime, global `fetch`, nothing stored, 20 s client timeout).
+* On Vercel: one function `api/proxy.ts`. **It is not a catch-all file** — `vercel.json` rewrites
+  `/api/proxy/:ns/:path*` → `/api/proxy?ns=:ns&p=:path`, and the function reads `ns`/`p` (falling
+  back to parsing `req.url`, so a direct hit also works). See *Deployment notes* below for why.
+* `api/ping.ts` is a canary: `curl https://<site>/api/ping` must return `{"ok":true}`. If it 404s,
+  the functions are not deploying at all — check the build log for a typecheck error.
 * Locally: Vite `server.proxy` in `vite.config.ts` with the same two routes
   (`KIPS_API_TARGET` / `KIPS_LEGACY_TARGET` env vars can point it at a mock or staging).
 * **If the backend team ever allow-lists the web origin**, the proxy can be dropped by changing
@@ -242,8 +246,8 @@ Not verified / not built:
 * **Push notifications** — FCM tokens don't apply to browsers; needs Web Push + a subscription store.
 * **Suggestions / surveys / app rating** — endpoints exist, screens not built (empty for this account).
 * **Shop (books & uniforms)** — links only.
-* **Multi-child switcher** — the API returns `users[]` (all children on a parent account); the app
-  always renders `user`. Worth building when a parent account is tested.
+* **Multi-child switcher** — built (sidebar `<select>` when `users.length > 1`), but no account
+  with two children has been tested.
 * **Forced first-login password change** — the web shows a dismissible banner instead of blocking.
 
 ---
