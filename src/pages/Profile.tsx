@@ -91,14 +91,15 @@ export default function Profile() {
     }
     setBusy(true)
     try {
-      await changePassword(oldPw, newPw, confirmPw)
+      await changePassword(session.userType, oldPw, newPw, confirmPw)
       setDone(true)
       setTimeout(() => {
         logout()
         navigate('/login', { replace: true })
       }, 1800)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not change the password')
+      const e = err as { message?: string; field?: string }
+      setError(e.field ? `${e.message} (field: ${e.field})` : e.message || 'Could not change the password')
     } finally {
       setBusy(false)
     }

@@ -170,10 +170,16 @@ export function logout() {
   setSession(null)
 }
 
-export async function changePassword(oldPassword: string, newPassword: string, confirmPassword: string) {
+export async function changePassword(
+  userType: 'student' | 'parent',
+  oldPassword: string,
+  newPassword: string,
+  confirmPassword: string,
+) {
+  // the endpoint validates `userType` first — it is an auth-scoped mutation, not a profile edit
   return api<unknown>('/auth/change-password', {
     method: 'POST',
-    body: { oldPassword, newPassword, confirmPassword },
+    body: { userType, oldPassword, newPassword, confirmPassword },
   })
 }
 
