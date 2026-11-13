@@ -110,7 +110,7 @@ Base: `https://students.kips.edu.pk/api/v1`. Every response is
 | --- | --- | --- | --- |
 | POST | `/auth/login` | `{userType: 'student'\|'parent', username, password}` | `{user, users[], userType, tokenData{token,iat,exp}, refreshTokenData{…}}` |
 | POST | `/auth/refresh-token` | `{refreshToken}` | same `tokenData` / `refreshTokenData` shape |
-| POST | `/auth/change-password` | `{oldPassword, newPassword, confirmPassword}` | — |
+| POST | `/auth/change-password` | `{userType, oldPassword, newPassword, confirmPassword}` | — |
 | POST | `/auth/change-password-for-first-time` | exists in the app; **not used here** | — |
 | GET | `/auth/get-logged-in-user` | — | `{user, users[], userType}` — 56-field student record |
 | GET | `/attendance/get-attendance` | — | `{totalPresents, totalAbsents, totalLeaves, totalAttendance}` |
